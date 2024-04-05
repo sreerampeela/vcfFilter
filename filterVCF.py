@@ -1,36 +1,39 @@
 import os
 import argparse
+import vcfpy
 
 arg = argparse.ArgumentParser()
 arg.add_argument("--vcf", help="VCF file name")
 arg.add_argument("--filter", help="Text argument for using with filter")
 arg.add_argument("--out", help="Output VCF file name")
 args = arg.parse_args()
-# print(os.listdir())
 
-def vcf_filter(infile,outfile,filton):
+def vcfFilter(infile="./sample.vcf",outfile="./test.vcf",filton="synonymous_variant"):
     """Filters a VCF file with the filtering option in the Info column alone
         infile : input vcf file
         outfile : output vcf file
         filton : term to filter in the INFO field
         start : starting for the header"""
-    vcf_in = open(infile,'r',encoding='utf-8',newline='\n')
-    vcf_out = open(outfile, 'w',encoding='utf-8',newline='\n')
-    vcf_data = [i for i in vcf_in.readlines() if i.startswith("#") is False]#
-    vcf_header = [i for i in vcf_in.readlines() if i.startswith("#") is True]
-    for i in vcf_header:
-        vcf_out.write(i)
-    for j in vcf_data:
-        vcf_ann = j.split("\t")[7]
-        if filton not in vcf_ann:
-            print(j)
-            vcf_out.write(j)
-
-    vcf_in.close()
-    vcf_out.close()
+    
+    reader = vcfpy.Reader.from_path(infile)
+    writer = vcfpy.Writer.from_path(outfile, reader.header)
+    for rec in reader:
+        outann = []
+        # print(rec.INFO)
+        for annotations in rec.INFO["ANN"]:
+            annData = annotations.split("|")
+            if filton in annData:
+                # print(annotations)
+                annData = ""
+            else:
+                outann.append("|".join(annData))
+        rec.INFO["ANN"] = outann
+        writer.write_record(rec)
+        #         outann.append(annotations)
+        # vcfpy.write_record(rec)
 
 def main():
-    vcf_filter(infile=args.vcf,outfile=args.out,filton=args.filter)
+    vcfFilter(infile=args.vcf, outfile=args.out, filton=args.filter)
 
 if __name__ == "__main__":
     main()
