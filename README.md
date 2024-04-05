@@ -9,3 +9,8 @@ vcfpy = 0.13.8 (https://pypi.org/project/vcfpy/)
 #sample command
 
 python3 filterVCF.py --vcf sample.vcf --filter synonymous_variant --out test_new.vcf
+
+Note:
+
+If synonymous variants are a part of complex variants,
+they are retained
